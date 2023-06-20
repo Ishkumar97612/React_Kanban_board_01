@@ -1,0 +1,11 @@
+.app_navbar{
+    font-family: 'Kablammo', cursive;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(227, 233, 237);
+    height: 80px;
+    font-size: 25px;
+    position: sticky;
+}
