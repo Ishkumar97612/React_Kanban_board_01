@@ -4,8 +4,9 @@ import {X} from 'react-feather'
 
 function Card(props) {
   return (
-    <div className="card"  
-
+    <div className="card"  draggable 
+    onDragEnd={()=>props.handelDragEnd(props.card?.id, props.boardId)}
+    onDragEnter={()=>props.handelDragEnter(props.card?.id, props.boardId)}
     >
       <div className="card_top">
         <div className="card_top_labels card_title">
