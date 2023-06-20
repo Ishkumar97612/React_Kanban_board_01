@@ -1,10 +1,172 @@
-import logo from './logo.svg';
+import { useEffect, useState } from 'react';
 import './App.css';
+import Board from './Components/Board/Board';
+import Editable from './Components/Editable/Editable';
+import Navbar from './Components/Navbar/Navbar';
 
 function App() {
+
+  const [boards, setBoards] = useState(JSON.parse(localStorage.getItem("Entries")) || [
+    {
+      id: Date.now() + Math.random() * 2,
+      title: "To Do",
+      cards: [
+        {
+          id: Date.now() + Math.random(),
+          title: "Card 1",
+          desc: "First card made",
+        },
+        {
+          id: Date.now() + Math.random(),
+          title: "Card 2",
+          desc: "Second card made",
+        }
+      ]
+    },
+    {
+      id: Date.now() + Math.random() * 2,
+      title: "In Progress",
+      cards: [
+        {
+          id: Date.now() + Math.random(),
+          title: "Card 1",
+          desc: "First card made",
+        },
+        {
+          id: Date.now() + Math.random(),
+          title: "Card 2",
+          desc: "Second card made",
+        }
+      ]
+    },
+    {
+      id: Date.now() + Math.random() * 2,
+      title: "Completed",
+      cards: [
+        {
+          id: Date.now() + Math.random(),
+          title: "Card 1",
+          tasks: [],
+          desc: "First card made",
+        },
+        {
+          id: Date.now() + Math.random(),
+          title: "Card 2",
+          desc: "Second card made",
+        }
+      ]
+    }
+  ] );
+
+  const [target, setTarget] = useState({
+    card_id: "",
+    board_id: ""
+  })
+
+  // Storing data in local storage...
+  useEffect(()=>{
+    localStorage.setItem("Entries", JSON.stringify(boards));
+  },[boards]);
+
+  // To add a new board
+  const addBoard = (title) => {
+    setBoards([...boards, {
+      id: Date.now() + Math.random(),
+      title: title,
+      cards: []
+    }])
+  }
+
+  // To remove board
+  const removeBoard = (board_id) => {
+    const tempBoards = boards.filter((item) => item.id !== board_id);
+    setBoards(tempBoards);
+  }
+
+
+  // To add new card whose board_id we know (means in which board we are going to add cards)
+  const addCard = (title, description, board_id) => {
+    const card = {
+      id: Date.now() + Math.random(),
+      title: title,
+      tasks: [],
+      labels: [],
+      desc: description,
+      date: ""
+    }
+
+    const index = boards.findIndex((item) => item.id === board_id);
+
+    if (index < 0) return;
+    const tempBoards = [...boards];
+    tempBoards[index].cards.push(card);
+    setBoards(tempBoards);
+  }
+
+  // To Remove the card
+  const removeCard = (card_id, board_id) => {
+    const boardIndex = boards.findIndex((item) => item.id === board_id);
+    if (boardIndex < 0) return;
+
+    const cardIndex = boards[boardIndex].cards.findIndex((item) => item.id === card_id)
+    if (cardIndex < 0) return;
+
+    const tempBoards = [...boards];
+    tempBoards[boardIndex].cards.splice(cardIndex, 1);
+    setBoards(tempBoards);
+  }
+
+  // Drag & Drop Functions
+
+  const handelDragEnter = (card_id, board_id) => {
+    setTarget({ card_id, board_id });
+  }
+
+  const handelDragEnd = (card_id, board_id) => {
+    let sourceBoardIndex, sourceCardIndex, targetBoardIndex, targetCardIndex;
+
+    sourceBoardIndex = boards.findIndex((item) => item.id === board_id);
+    if (sourceBoardIndex < 0) return;
+
+    sourceCardIndex = boards[sourceBoardIndex].cards?.findIndex((item) => item.id === card_id);
+    if (sourceCardIndex < 0) return;
+
+    targetBoardIndex = boards.findIndex((item) => item.id === target.board_id);
+    if (targetBoardIndex < 0) return;
+    console.log(target.card_id);
+    targetCardIndex = boards[targetBoardIndex].cards?.findIndex((item) => item.id === target.card_id);
+    if (targetCardIndex < 0) return;
+
+    console.log(targetCardIndex);
+    //Now we have to remove that card from source board and push to its target board
+
+    const tempBoards = [...boards];
+    const tempCard = tempBoards[sourceBoardIndex].cards[sourceCardIndex]; // keeping copy of that card which i want to drag
+
+    tempBoards[sourceBoardIndex].cards.splice(sourceCardIndex, 1); // remove that card from source board
+
+    tempBoards[targetBoardIndex].cards.splice(targetCardIndex, 0, tempCard); // Adding that card to destination
+    setBoards(tempBoards);
+  }
+
   return (
-    <div className="App">
-      
+    <div className="app">
+      <Navbar/>
+      <div className='app_outer'>
+        <div className='app_boards'>
+          {boards.map((item) => <Board key={item.id} board={item} removeBoard={removeBoard}
+            addCard={addCard} removeCard={removeCard} handelDragEnter={handelDragEnter} handelDragEnd={handelDragEnd} />)}
+
+          <div className='app_boards_board'>
+            <Editable
+              displayClass="app_boards_board_add"
+              text="Add Board"
+              placeholder="Enter board title"
+              onSubmit={value => addBoard(value)}></Editable>
+
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
